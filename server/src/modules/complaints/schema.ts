@@ -16,3 +16,7 @@ export const createComplaintSchema = z.object({
 export const updateComplaintStatusSchema = z.object({
   status: z.enum(["open", "in_progress", "resolved", "closed"]),
 });
+
+export const assignComplaintSchema = z.object({
+  assigned_to: z.string().uuid(),
+});

@@ -30,7 +30,6 @@ export const createComplaint = async (
   return complaint;
 };
 
-
 export const getComplaints = async (userId: string) => {
   const membership = await prisma.society_memberships.findFirst({
     where: {
@@ -54,11 +53,7 @@ export const getComplaints = async (userId: string) => {
   return complaints;
 };
 
-
-export const getComplaintById = async (
-  complaintId: string,
-  userId: string,
-) => {
+export const getComplaintById = async (complaintId: string, userId: string) => {
   const membership = await prisma.society_memberships.findFirst({
     where: {
       user_id: userId,
@@ -74,6 +69,15 @@ export const getComplaintById = async (
       id: complaintId,
       society_id: membership.society_id,
     },
+    include: {
+      assigned_user: {
+        select: {
+          id: true,
+          full_name: true,
+          email: true,
+        },
+      },
+    },
   });
 
   if (!complaint) {
@@ -82,8 +86,6 @@ export const getComplaintById = async (
 
   return complaint;
 };
-
-
 
 export const updateComplaintStatus = async (
   complaintId: string,
@@ -121,6 +123,55 @@ export const updateComplaintStatus = async (
     data: {
       status,
       updated_at: new Date(),
+    },
+  });
+};
+
+export const assignComplaint = async (
+  userId: string,
+  complaintId: string,
+  assignedTo: string,
+) => {
+  const membership = await prisma.society_memberships.findFirst({
+    where: {
+      user_id: userId,
+      role: "admin",
+    },
+  });
+
+  if (!membership) {
+    throw new AppError(403, "Only admins can assign complaints");
+  }
+
+  const staffMembership = await prisma.society_memberships.findFirst({
+    where: {
+      user_id: assignedTo,
+      society_id: membership.society_id,
+      role: "staff",
+    },
+  });
+
+  if (!staffMembership) {
+    throw new AppError(400, "Assigned user must be staff in your society");
+  }
+
+  const complaint = await prisma.complaints.findFirst({
+    where: {
+      id: complaintId,
+      society_id: membership.society_id,
+    },
+  });
+
+  if (!complaint) {
+    throw new AppError(404, "Complaint not found");
+  }
+
+  return prisma.complaints.update({
+    where: {
+      id: complaintId,
+    },
+    data: {
+      assigned_to: assignedTo,
     },
   });
 };

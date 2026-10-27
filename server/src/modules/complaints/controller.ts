@@ -1,6 +1,12 @@
 import type { Request, Response, NextFunction } from "express";
-import { createComplaintSchema, updateComplaintStatusSchema } from "./schema";
-import { createComplaint, getComplaintById, getComplaints, updateComplaintStatus } from "./service";
+import { assignComplaintSchema, createComplaintSchema, updateComplaintStatusSchema } from "./schema";
+import {
+  assignComplaint,
+  createComplaint,
+  getComplaintById,
+  getComplaints,
+  updateComplaintStatus,
+} from "./service";
 import type { AuthRequest } from "../../middlewares/auth.middleware";
 
 export const createComplaintController = async (
@@ -27,7 +33,6 @@ export const createComplaintController = async (
   }
 };
 
-
 export const getComplaintsController = async (
   req: AuthRequest,
   res: Response,
@@ -42,7 +47,6 @@ export const getComplaintsController = async (
   }
 };
 
-
 export const getComplaintByIdController = async (
   req: AuthRequest,
   res: Response,
@@ -51,18 +55,13 @@ export const getComplaintByIdController = async (
   try {
     const complaintId = String(req.params.complaintId);
 
-    const complaint = await getComplaintById(
-      complaintId,
-      req.userId!,
-    );
+    const complaint = await getComplaintById(complaintId, req.userId!);
 
     res.status(200).json({ complaint });
   } catch (error) {
     next(error);
   }
 };
-
-
 
 export const updateComplaintStatusController = async (
   req: AuthRequest,
@@ -81,6 +80,30 @@ export const updateComplaintStatusController = async (
 
     res.status(200).json({
       message: "Complaint status updated successfully",
+      complaint,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const assignComplaintController = async (
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const input = assignComplaintSchema.parse(req.body);
+    const complaintId = String(req.params.complaintId);
+
+    const complaint = await assignComplaint(
+      req.userId!,
+      complaintId,
+      input.assigned_to,
+    );
+
+    res.status(200).json({
+      message: "Complaint assigned successfully",
       complaint,
     });
   } catch (error) {
