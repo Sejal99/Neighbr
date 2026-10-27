@@ -5,6 +5,8 @@ import { notFoundMiddleware } from "./middlewares/not-found.middleware";
 import { errorMiddleware } from "./middlewares/error.middleware";
 import authRoutes from "./modules/auth/routes";
 import societyRoutes from "./modules/societies/routes";
+import complaintRoutes from "./modules/complaints/routes"
+import facilityRoutes from "./modules/facilities/routes";
 
 const app = express();
 
@@ -14,6 +16,8 @@ app.use(express.json());
 app.use("/health", healthRoutes);
 app.use("/auth", authRoutes);
 app.use("/societies", societyRoutes);
+app.use("/complaints", complaintRoutes);
+app.use("/facilities", facilityRoutes);
 
 app.use(notFoundMiddleware);
 app.use(errorMiddleware);
