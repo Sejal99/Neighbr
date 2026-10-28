@@ -1,10 +1,13 @@
 import type { Request, Response, NextFunction } from "express";
-import { assignComplaintSchema, createComplaintSchema, updateComplaintStatusSchema } from "./schema";
+import { assignComplaintSchema, createComplaintCommentSchema, createComplaintSchema, updateComplaintStatusSchema } from "./schema";
 import {
   assignComplaint,
   createComplaint,
+  createComplaintComment,
   getComplaintById,
+  getComplaintComments,
   getComplaints,
+  getComplaintStatusHistory,
   updateComplaintStatus,
 } from "./service";
 import type { AuthRequest } from "../../middlewares/auth.middleware";
@@ -106,6 +109,68 @@ export const assignComplaintController = async (
       message: "Complaint assigned successfully",
       complaint,
     });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getComplaintStatusHistoryController = async (
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const complaintId = String(req.params.complaintId);
+
+    const history = await getComplaintStatusHistory(
+      complaintId,
+      req.userId!,
+    );
+
+    res.status(200).json({ history });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const createComplaintCommentController = async (
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const input = createComplaintCommentSchema.parse(req.body);
+    const complaintId = String(req.params.complaintId);
+
+    const comment = await createComplaintComment(
+      complaintId,
+      req.userId!,
+      input.comment,
+    );
+
+    res.status(201).json({
+      message: "Comment added successfully",
+      comment,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getComplaintCommentsController = async (
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const complaintId = String(req.params.complaintId);
+
+    const comments = await getComplaintComments(
+      complaintId,
+      req.userId!,
+    );
+
+    res.status(200).json({ comments });
   } catch (error) {
     next(error);
   }

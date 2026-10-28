@@ -115,15 +115,27 @@ export const updateComplaintStatus = async (
   if (!complaint) {
     throw new AppError(404, "Complaint not found");
   }
+  return prisma.$transaction(async (tx) => {
+    const updatedComplaint = await tx.complaints.update({
+      where: {
+        id: complaintId,
+      },
+      data: {
+        status,
+        updated_at: new Date(),
+      },
+    });
 
-  return prisma.complaints.update({
-    where: {
-      id: complaintId,
-    },
-    data: {
-      status,
-      updated_at: new Date(),
-    },
+    await tx.complaint_status_history.create({
+      data: {
+        complaint_id: complaintId,
+        changed_by: userId,
+        old_status: complaint.status,
+        new_status: status,
+      },
+    });
+
+    return updatedComplaint;
   });
 };
 
@@ -173,5 +185,121 @@ export const assignComplaint = async (
     data: {
       assigned_to: assignedTo,
     },
+  });
+};
+
+export const getComplaintStatusHistory = async (
+  complaintId: string,
+  userId: string,
+) => {
+  const membership = await prisma.society_memberships.findFirst({
+    where: {
+      user_id: userId,
+    },
+  });
+
+  if (!membership) {
+    throw new AppError(400, "You do not belong to any society");
+  }
+
+  const complaint = await prisma.complaints.findFirst({
+    where: {
+      id: complaintId,
+      society_id: membership.society_id,
+    },
+  });
+
+  if (!complaint) {
+    throw new AppError(404, "Complaint not found");
+  }
+
+  return prisma.complaint_status_history.findMany({
+    where: {
+      complaint_id: complaintId,
+    },
+    orderBy: {
+      created_at: "asc",
+    },
+  });
+};
+
+export const createComplaintComment = async (
+  complaintId: string,
+  userId: string,
+  comment: string,
+) => {
+  const membership = await prisma.society_memberships.findFirst({
+    where: {
+      user_id: userId,
+    },
+  });
+
+  if (!membership) {
+    throw new AppError(400, "You do not belong to any society");
+  }
+
+  const complaint = await prisma.complaints.findFirst({
+    where: {
+      id: complaintId,
+      society_id: membership.society_id,
+    },
+  });
+
+  if (!complaint) {
+    throw new AppError(404, "Complaint not found");
+  }
+
+  const addComment = await prisma.complaint_comments.create({
+    data: {
+      complaint_id: complaintId,
+      user_id: userId,
+      comment,
+    },
+    include: {
+      users: {
+        select: {
+          id: true,
+          full_name: true,
+        },
+      },
+    },
+  });
+  return addComment;
+};
+
+export const getComplaintComments = async (
+  complaintId: string,
+  userId: string,
+) => {
+  const membership = await prisma.society_memberships.findFirst({
+    where: { user_id: userId },
+  });
+
+  if (!membership) {
+    throw new AppError(400, "You do not belong to any society");
+  }
+
+  const complaint = await prisma.complaints.findFirst({
+    where: {
+      id: complaintId,
+      society_id: membership.society_id,
+    },
+  });
+
+  if (!complaint) {
+    throw new AppError(404, "Complaint not found");
+  }
+
+  return prisma.complaint_comments.findMany({
+    where: { complaint_id: complaintId },
+    include: {
+      users: {
+        select: {
+          id: true,
+          full_name: true,
+        },
+      },
+    },
+    orderBy: { created_at: "asc" },
   });
 };

@@ -20,3 +20,7 @@ export const updateComplaintStatusSchema = z.object({
 export const assignComplaintSchema = z.object({
   assigned_to: z.string().uuid(),
 });
+
+export const createComplaintCommentSchema = z.object({
+  comment: z.string().trim().min(1),
+});
