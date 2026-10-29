@@ -1,11 +1,6 @@
 pluginManagement {
-    // This project is a yarn workspace, so dependencies are usually hoisted to
-    // the repository root. Prefer that location, but keep working if the
-    // packages were installed locally in client/node_modules.
-    def reactNativeGradlePluginPath = "../../node_modules/@react-native/gradle-plugin"
-    if (!file(reactNativeGradlePluginPath).exists()) {
-        reactNativeGradlePluginPath = "../node_modules/@react-native/gradle-plugin"
-    }
+    // Dependencies are installed locally in client/node_modules.
+    def reactNativeGradlePluginPath = "../node_modules/@react-native/gradle-plugin"
     gradle.ext.reactNativeGradlePluginPath = reactNativeGradlePluginPath
     includeBuild(reactNativeGradlePluginPath)
 }

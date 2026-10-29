@@ -2,6 +2,7 @@
   "name": "@neighbr/server",
   "version": "1.0.0",
   "private": true,
+  "packageManager": "yarn@3.6.4",
   "main": "dist/server.js",
   "scripts": {
     "dev": "tsx watch src/server.ts",
