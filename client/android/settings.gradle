@@ -1,0 +1,16 @@
+pluginManagement {
+    // This project is a yarn workspace, so dependencies are usually hoisted to
+    // the repository root. Prefer that location, but keep working if the
+    // packages were installed locally in client/node_modules.
+    def reactNativeGradlePluginPath = "../../node_modules/@react-native/gradle-plugin"
+    if (!file(reactNativeGradlePluginPath).exists()) {
+        reactNativeGradlePluginPath = "../node_modules/@react-native/gradle-plugin"
+    }
+    gradle.ext.reactNativeGradlePluginPath = reactNativeGradlePluginPath
+    includeBuild(reactNativeGradlePluginPath)
+}
+plugins { id("com.facebook.react.settings") }
+extensions.configure(com.facebook.react.ReactSettingsExtension){ ex -> ex.autolinkLibrariesFromCommand() }
+rootProject.name = 'client'
+include ':app'
+includeBuild(gradle.ext.reactNativeGradlePluginPath)
